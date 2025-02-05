@@ -1,0 +1,139 @@
+-- 1How many npi numbers appear in the prescriber table but not in the prescription table?
+-- select npi
+-- from prescriber
+-- except
+-- select npi
+-- from prescription;
+--4458 npi numbers
+
+
+-- 2a. Find the top five drugs (generic_name) prescribed by prescribers with the specialty of Family Practice.
+-- select generic_name, sum(total_claim_count) as total_claims
+-- from prescription
+-- join drug
+-- 	using (drug_name)
+-- join prescriber
+-- 	using (npi)
+-- where specialty_description = 'Family Practice'
+-- group by generic_name
+-- order by total_claims desc
+-- limit 5;
+
+-- 2b. Find the top five drugs (generic_name) prescribed by prescribers with the specialty of Cardiology.
+-- select generic_name, sum(total_claim_count) as total_claims
+-- from prescription
+-- join drug
+-- 	using (drug_name)
+-- join prescriber
+-- 	using (npi)
+-- where specialty_description = 'Cardiology'
+-- group by generic_name
+-- order by total_claims desc
+-- limit 5;
+
+-- 2c. Which drugs are in the top five prescribed by Family Practice prescribers and Cardiologists? Combine what you did for parts a and b into a single query to answer this question.
+-- (select generic_name, sum(total_claim_count) as total_claims
+-- from prescription
+-- join drug
+-- 	using (drug_name)
+-- join prescriber
+-- 	using (npi)
+-- where specialty_description = 'Family Practice'
+-- group by generic_name)
+-- union
+-- (select generic_name, sum(total_claim_count) as total_claims
+-- from prescription
+-- join drug
+-- 	using (drug_name)
+-- join prescriber
+-- 	using (npi)
+-- where specialty_description = 'Cardiology'
+-- group by generic_name)
+-- order by total_claims desc
+-- limit 5;
+
+-- Your goal in this question is to generate a list of the top prescribers in each of the major metropolitan areas of Tennessee. 
+-- 3a. First, write a query that finds the top 5 prescribers in Nashville in terms of the total number of claims (total_claim_count) across all drugs. Report the npi, the total number of claims, and include a column showing the city.
+-- select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'NASHVILLE'
+-- group by npi, nppes_provider_city
+-- order by total_claims desc
+-- limit 5;
+
+-- 3b. Now, report the same for Memphis.
+-- select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'MEMPHIS'
+-- group by npi, nppes_provider_city
+-- order by total_claims desc
+-- limit 5;
+
+-- 3c. Combine your results from a and b, along with the results for Knoxville and Chattanooga.
+-- (select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'NASHVILLE'
+-- group by npi, nppes_provider_city
+-- limit 5)
+-- union
+-- (select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'MEMPHIS'
+-- group by npi, nppes_provider_city
+-- limit 5)
+-- union
+-- (select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'KNOXVILLE'
+-- group by npi, nppes_provider_city
+-- limit 5)
+-- union
+-- (select npi, sum(total_claim_count) as total_claims, nppes_provider_city as city
+-- from prescriber
+-- join prescription
+-- 	using (npi)
+-- where nppes_provider_city = 'CHATTANOOGA'
+-- group by npi, nppes_provider_city
+-- limit 5)
+-- order by total_claims desc;
+
+
+-- 4 Find all counties which had an above-average number of overdose deaths. Report the county name and number of overdose deaths.
+-- select county, overdose_deaths
+-- from overdose_deaths as od
+-- join fips_county as fc
+-- 	on od.fipscounty::int = fc.fipscounty::int
+-- where overdose_deaths > (select avg(overdose_deaths)
+-- 							from overdose_deaths)
+-- order by overdose_deaths desc;
+
+
+-- 5a. Write a query that finds the total population of Tennessee.
+-- select sum(population) as total_tn_pop
+-- from population
+-- join fips_county
+-- 	using (fipscounty)
+-- where state = 'TN';
+
+-- 5b. Build off of the query that you wrote in part a to write a query that returns for each county that county's name, its population, and the percentage of the total population of Tennessee that is contained in that county.
+-- select county, sum(population) as total_pop, round(sum(population) / (select sum(population)
+-- 						from population
+-- 						join fips_county
+-- 							using (fipscounty)
+-- 						where state = 'TN'), 2) as percentage_pop
+-- from population
+-- join fips_county
+-- 	using (fipscounty)
+-- where state = 'TN'
+-- group by county
+-- order by percentage_pop desc;

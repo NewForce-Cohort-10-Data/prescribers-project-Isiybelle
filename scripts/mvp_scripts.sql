@@ -53,6 +53,14 @@
 -- where drug_name is not null
 -- group by specialty_description);
 
+--Tommy's query
+-- select specialty_description, sum(total_claim_count) as total_claim
+-- from prescriber
+-- left join prescription
+-- 	using (npi)
+-- group by specialty_description
+-- having sum(total_claim_count) is null;
+
 -- 2d. Difficult Bonus: Do not attempt until you have solved all other problems! For each specialty, report the percentage of total claims by that specialty which are for opioids. Which specialties have a high percentage of opioids?
 -- with opioid_info as (
 -- 	select npi, opioid_drug_flag,
@@ -63,7 +71,7 @@
 -- 	from prescription
 -- 	join drug
 -- 		using (drug_name))
--- select specialty_description, round(sum(opioid_claims) / sum(total_claim_count), 2) as total_opioid
+-- select specialty_description, round((sum(opioid_claims) / sum(total_claim_count) * 100), 0) as total_opioid
 -- from prescription
 -- join prescriber
 -- 	using (npi)
@@ -83,6 +91,16 @@
 -- JOIN drug d ON pr.drug_name = d.drug_name
 -- GROUP BY p.specialty_description
 -- ORDER BY opioid_percentage DESC;
+
+--Tommy's query
+-- select
+-- 	specialty_description,
+-- 	round(sum(case when opioid_drug_flag = 'Y' then total_claim_count end)/sum(total_claim_count) * 100,2) as percent_opioid
+-- from prescriber
+-- left join prescription using(npi)
+-- left join drug using(drug_name)
+-- group by specialty_description
+-- order by percent_opioid desc nulls last;
 
 -- with total_opioid_percentage as (
 -- 	select npi, count(opioid_drug_flag) / sum (total_claim_count) as op_percentage
@@ -201,7 +219,7 @@
 
 
 -- 5a. How many CBSAs are in Tennessee? Warning: The cbsa table contains information for all states, not just Tennessee.
--- select state, count(cbsa)
+-- select state, count(distinct cbsa)
 -- from cbsa
 -- join fips_county
 -- 	using (fipscounty)
@@ -233,6 +251,14 @@
 -- 	using (fipscounty)
 -- order by population desc;
 -- SEVIER at 95523
+
+--Tommy's query
+-- select county, population
+-- from fips_county
+-- join population
+-- 	using (fipscounty)
+-- where fipscounty not in (select fipscounty from cbsa)
+-- order by population desc;
 
 -- Victoria's query
 -- SELECT county, population.population
@@ -269,6 +295,14 @@
 -- where total_claim_count >= 3000;
 
 -- 6c. Add another column to you answer from the previous part which gives the prescriber first and last name associated with each row.
+-- select nppes_provider_first_name, nppes_provider_last_org_name, drug_name, total_claim_count, opioid_drug_flag
+-- from prescription
+-- join drug
+-- 	using (drug_name)
+-- join prescriber
+-- 	using (npi)
+-- where total_claim_count >= 3000;
+
 -- select nppes_provider_first_name, nppes_provider_last_org_name, drug_name, total_claim_count,
 -- 	case
 -- 		when opioid_drug_flag = 'Y' then 'Y'
@@ -295,25 +329,23 @@
 
 
 -- 7b. Next, report the number of claims per drug per prescriber. Be sure to include all combinations, whether or not the prescriber had any claims. You should report the npi, the drug name, and the number of claims (total_claim_count).
--- select npi, drug.drug_name, sum(coalesce(total_claim_count,0)) as total_claims
+-- select npi, drug.drug_name, coalesce(total_claim_count,0) as total_claims
 -- from prescriber
 -- cross join drug
--- join prescription
--- 	using (npi)
+-- left join prescription
+-- 	using (npi, drug_name)
 -- where specialty_description = 'Pain Management'
 -- 	and nppes_provider_city = 'NASHVILLE'
 -- 	and opioid_drug_flag = 'Y'
--- group by npi, drug.drug_name
 -- order by total_claims desc;
 
 -- 7c. Finally, if you have not done so already, fill in any missing values for total_claim_count with 0. Hint - Google the COALESCE function.
--- select npi, drug.drug_name, sum(coalesce(total_claim_count, 0)) as total_claims
+-- select npi, drug.drug_name, coalesce(total_claim_count,0) as total_claims
 -- from prescriber
 -- cross join drug
--- join prescription
--- 	using (npi)
+-- left join prescription
+-- 	using (npi, drug_name)
 -- where specialty_description = 'Pain Management'
 -- 	and nppes_provider_city = 'NASHVILLE'
 -- 	and opioid_drug_flag = 'Y'
--- group by npi, drug.drug_name
 -- order by total_claims desc;
